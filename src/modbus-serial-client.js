@@ -125,7 +125,21 @@ module.exports = stampit()
                     this.resetReceiveBuffer()
                   }
                 } else {
-                  this.log.debug('received bytes ' + expectedBytes + ' differ from expected bytes ' + receivedBytes)
+                  // When read registers are 4 bytes length
+                  if( receivedBytes === (((expectedBytes-5)*2)+5) ) {
+                    if (crc.crc16modbus(receiveBuffer.slice(0, receivedBytes)) === 0) {
+                    this.emit('data', receiveBuffer.slice(1, receivedBytes - crcBytes))
+                    this.resetReceiveBuffer()
+                    }
+                  // When read registers are 8 bytes length
+                  }else if( receivedBytes === (((expectedBytes-5)*4)+5) ) {
+                    if (crc.crc16modbus(receiveBuffer.slice(0, receivedBytes)) === 0) {
+                    this.emit('data', receiveBuffer.slice(1, receivedBytes - crcBytes))
+                    this.resetReceiveBuffer()
+                    }
+                  }else{
+                    this.log.debug('received bytes ' + expectedBytes + ' differ from expected bytes ' + receivedBytes)
+                  }
                 }
               } else {
                 this.log.debug('none expected bytes: ' + expectedBytes)
